@@ -76,6 +76,26 @@ def _cli_parser() -> argparse.ArgumentParser:
         required=True,
     )
 
+    # decrypt command
+    subparser = subparsers.add_parser(
+        "dynamic-decrypt",
+        help="Decrypt AES-256-CBC enedis fileswith dynamic IV",
+    )
+    subparser.add_argument(
+        "--key",
+        help="Hex AES key",
+        **arg_from_env("ENEDIS_DECRYPT_KEY_DYN"),
+    )
+    subparser.add_argument(
+        "input_file", help="Input file", type=argparse.FileType("rb")
+    )
+    subparser.add_argument(
+        "-o",
+        "--output",
+        help="Output file",
+        required=True,
+    )
+
     return parser
 
 
@@ -93,6 +113,10 @@ def run() -> NoReturn:
 
     elif args.command == "decrypt":
         decrypted = decrypt.decrypt_aes_128_cbc(args.key, args.iv, args.input_file)
+        with open(args.output, "wb") as f:
+            f.write(decrypted)
+    elif args.command == "dynamic-decrypt":
+        decrypted = decrypt.decrypt_aes_256_cbc_dynamic_iv(args.key, args.input_file)
         with open(args.output, "wb") as f:
             f.write(decrypted)
     elif args.command:
